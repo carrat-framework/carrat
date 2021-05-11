@@ -1,5 +1,6 @@
 package org.carrat.flow.list
 
+import org.carrat.experimental.CarratExperimental
 import org.carrat.model.Subscriber
 import org.carrat.model.Subscription
 import org.carrat.model.Subscriptions
@@ -39,8 +40,8 @@ internal class DefaultListProperty<E>(
 
     override fun retainAll(elements: Collection<E>): Boolean {
         val removals =
-            store.withIndex().filter { !elements.contains(it.value) }.map { it.index }.sortedDescending()
-                .map(::RemoveAt)
+            store.asSequence().withIndex().filter { !elements.contains(it.value) }.map { it.index }.sortedDescending()
+                .map(::RemoveAt).toList()
         apply(removals)
         return removals.isNotEmpty()
     }
@@ -50,13 +51,6 @@ internal class DefaultListProperty<E>(
         apply(Set(index, element))
         return replaced
     }
-
-    override fun iterator(): MutableIterator<E> = super.iterator()
-
-    override fun listIterator(): MutableListIterator<E> = super.listIterator()
-
-    override fun listIterator(index: Int): MutableListIterator<E> = super.listIterator(index)
-
 
     override fun apply(manipulations: List<ListManipulation<E>>) {
         manipulations.forEach { it.applyTo(store) }
@@ -69,4 +63,7 @@ internal class DefaultListProperty<E>(
     override val size by store::size
 
     override fun get(index: Int): E = store.get(index)
+
+    @CarratExperimental
+    override fun <U> map(transform: (E) -> U): SubscribableList<U> = MappedSubscribableList(this, transform)
 }

@@ -18,7 +18,7 @@ internal class FlowImpl(
     internal var reevaluationQueue = ReevaluationQueue()
     internal val changed = LinkedHashSet<Store<*, *>>()
     internal var deferredSubscriptionCalls = LinkedHashMap<SubscriptionId, SubscriptionCall<*>>()
-    internal var deferredMutationSubscriptionCalls = LinkedHashMap<SubscriptionId, MutableList<*>>()
+    internal var deferredMutationSubscriptionCalls = LinkedHashMap<SubscriptionId, MutationSubscriptionCall<*>>()
     private var dispatchJob: Job? = null
     private var reevaluating = false
     private var queryReceiver: QueryReceiverImpl? = null
@@ -58,9 +58,12 @@ internal class FlowImpl(
         reevaluating = false
         // Call subscribers
         val deferredSubscriptionCalls = this@FlowImpl.deferredSubscriptionCalls
+        val deferredMutationSubscriptionCalls = this@FlowImpl.deferredMutationSubscriptionCalls
         this.deferredSubscriptionCalls = LinkedHashMap()
+        this.deferredMutationSubscriptionCalls = LinkedHashMap()
         withQueryReceiver {
-            deferredSubscriptionCalls.values.forEach { it.apply { invoke() } }
+            deferredSubscriptionCalls.values.forEach { it.invoke() }
+            deferredMutationSubscriptionCalls.values.forEach { it.invoke() }
         }
     }
 

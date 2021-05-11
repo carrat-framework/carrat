@@ -9,9 +9,7 @@ internal class SubscriptionValueCall<Value>(
     private val subscriber: Subscriber<Value>,
     private val subscription: Subscription
 ) : SubscriptionCall<Value>() {
-    override fun QueryReceiver.invoke() {
-        with(subscriber) {
-            emit(newValue, subscription)
-        }
+    override fun invoke() {
+        subscriber.emit(newValue, subscription)
     }
 }

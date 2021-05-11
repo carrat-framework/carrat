@@ -57,8 +57,8 @@ internal class QueryReceiverImpl(
         subscribeMutations { mutations, subscription ->
             @Suppress("UNCHECKED_CAST")
             val pendingMutations =
-                this@QueryReceiverImpl.flow.deferredMutationSubscriptionCalls.getOrPut(subscriptionId) { mutableListOf<Mutation>() } as MutableList<Mutation>
-            pendingMutations += mutations
+                this@QueryReceiverImpl.flow.deferredMutationSubscriptionCalls.getOrPut(subscriptionId) { MutationSubscriptionCall(subscriber, subscription) } as MutationSubscriptionCall<Mutation>
+            pendingMutations.mutations += mutations
         }
     }
 

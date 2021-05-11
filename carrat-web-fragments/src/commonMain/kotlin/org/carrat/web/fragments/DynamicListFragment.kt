@@ -192,12 +192,12 @@ public class DynamicListFragment(
     }
 
     private fun mountContent(index: Int, fragment: Fragment) = manipulate {
-        val elementWrapper = ElementWrapper(fragment)
+        val elementWrapper = ElementWrapper(fragment, document.createComment(Marker.SEPARATOR.string))
         if (domMounted) {
             val before = getOrNull(index)?.startSeparator ?: endMarker
-            val startSeparator = document.createComment(Marker.SEPARATOR.string)
+            val startSeparator = elementWrapper.startSeparator!!
             val parent = before.parentElement!!
-            parent.insertBefore(before, startSeparator)
+            parent.insertBefore(startSeparator, before)
             if(!fragment.attached) {
                 fragment.attach()
             }

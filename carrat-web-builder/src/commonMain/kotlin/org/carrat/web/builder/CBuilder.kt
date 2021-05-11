@@ -8,6 +8,7 @@ import org.carrat.model.SubscribableReference
 import org.carrat.model.Subscription
 import org.carrat.experimental.CarratExperimental
 import org.carrat.experimental.ExperimentalMultipleReceivers
+import org.carrat.model.list.SubscribableList
 
 /**
  * Builder capable of appending nested fragments.
@@ -53,6 +54,21 @@ public fun CBuilder.dynamicFragment(fragment: SubscribableReference<Fragment>) {
 }
 
 @CarratExperimental
+public fun CBuilder.dynamicFragment(fragments: SubscribableList<Fragment>) {
+    val dynamicFragment = DynamicListFragment(fragments)
+    var subscription: Subscription? = null
+    onMount {
+        subscription = fragments.subscribe { mutations, _ ->
+            mutations.forEach { it.applyTo(dynamicFragment.children) }
+        }
+    }
+    onUnmount {
+        subscription!!.cancel()
+    }
+    append(dynamicFragment)
+}
+
+@CarratExperimental
 public fun CBuilder.dynamic(fragment: SubscribableReference<CBuilder.() -> Unit>) {
     return dynamicFragment(fragment.map { context.build(it) })
 }
@@ -63,4 +79,12 @@ public fun <T> CBuilder.dynamic(
     render: CBuilder.(value: T) -> Unit
 ) {
     return dynamic(value.map { { render(it) } })
+}
+
+@CarratExperimental
+public fun <T> CBuilder.dynamic(
+    list: SubscribableList<T>,
+    render: CBuilder.(value: T) -> Unit
+) {
+    return dynamicFragment(list.map { context.build { render(it) } })
 }

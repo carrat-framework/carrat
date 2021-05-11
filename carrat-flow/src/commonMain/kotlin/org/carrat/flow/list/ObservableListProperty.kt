@@ -104,4 +104,5 @@ internal class ObservableListProperty<Element>(
         delegate.apply(manipulations)
     }
 
+    override fun <U> map(transform: (Element) -> U): SubscribableList<U> = MappedSubscribableList(this, transform)
 }

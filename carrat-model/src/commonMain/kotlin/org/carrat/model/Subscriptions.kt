@@ -5,7 +5,6 @@ import org.carrat.experimental.CarratExperimental
 @CarratExperimental
 public class Subscriptions<T> : Subscribable<T> {
     private val subscribers: MutableMap<Subscription, Subscriber<T>> = mutableMapOf()
-    private var i = 0
 
     public val hasSubscribers: Boolean
         get() = subscribers.isNotEmpty()

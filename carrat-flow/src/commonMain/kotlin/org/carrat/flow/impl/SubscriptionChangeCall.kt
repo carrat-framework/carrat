@@ -11,9 +11,7 @@ internal class SubscriptionChangeCall<Value>(
     private val subscriber: Subscriber<Change<Value>>,
     private val subscription: Subscription
 ) : SubscriptionCall<Value>() {
-    override fun QueryReceiver.invoke() {
-        with(subscriber) {
-            emit(Change(oldValue, newValue), subscription)
-        }
+    override fun invoke() {
+        subscriber.emit(Change(oldValue, newValue), subscription)
     }
 }
