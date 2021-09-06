@@ -29,8 +29,14 @@ internal actual class StyleSheetsManager {
         }
     }
 
-    private fun injectStyleUnsafe(styleString: String) {
-        injectedStylesElement().appendText(styleString)
+    actual fun injectUnsafeStyle(style: String) {
+        injectedStylesElement().appendText(style)
+    }
+
+    actual fun injectUnsafeStyle(style: Appendable.()->Unit) {
+        val sb = StringBuilder()
+        sb.style()
+        injectedStylesElement().appendText(sb.toString())
     }
 
     private fun injectedStylesElement(): Element {
@@ -44,7 +50,7 @@ internal actual class StyleSheetsManager {
     private fun getHead(): Element {
         val head: Element
         if (document.head == null) {
-            head = document.createElement("head") as Element
+            head = document.createElement("head")
             document.appendChild(head)
         } else {
             head = document.head!!
@@ -80,7 +86,7 @@ internal actual class StyleSheetsManager {
 
     actual fun importStyleSheet(styleSheet: StyleSheet) {
         if (importedStyleSheets.names.add(styleSheet.name)) {
-            injectStyleUnsafe(styleSheet.render())
+            injectUnsafeStyle(styleSheet.render())
         }
     }
 }

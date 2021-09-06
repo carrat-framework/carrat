@@ -1,9 +1,8 @@
 package org.carrat.web.css
 
-import org.carrat.web.builder.CBuilder
-import org.carrat.web.builder.CTagBlock
-import org.carrat.web.builder.CTagBuilder
+import org.carrat.web.builder.html.TagBlock
+import org.carrat.web.builder.html.TagConsumer
 
-public typealias StyledBlock<T> = CTagBlock<T>
+public typealias StyledBlock<T, E> = TagBlock<T, E>
 
-public typealias Styled<T> = CBuilder.(block: StyledBlock<T>) -> Unit
+public typealias Styled<T, E> = TagConsumer<*>.(block: StyledBlock<T, E>) -> Unit

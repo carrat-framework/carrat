@@ -6,7 +6,7 @@ import org.carrat.model.Subscriber
 import org.carrat.model.Subscription
 
 internal class QueryReceiverImpl(
-    private val flow: FlowImpl,
+    override val flow: FlowImpl,
     private var tracker: LinkedHashSet<Dependency<*>>? = null
 ) : QueryReceiver {
 

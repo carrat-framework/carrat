@@ -1,12 +1,16 @@
 package org.carrat.flow
 
 import org.carrat.experimental.ExperimentalMultipleReceivers
-import org.carrat.model.Change
-import org.carrat.model.Subscriber
-import org.carrat.model.Subscription
+import org.carrat.flow.list.ObservableListProperty
+import org.carrat.flow.property.ObservableProperty
+import org.carrat.flow.property.ObservableSubscribableReference
+import org.carrat.model.*
+import org.carrat.model.list.ListManipulation
+import org.carrat.model.list.ListProperty
 
 @FlowDsl
 public interface QueryReceiver {
+    public val flow : Flow
     public fun <State, Result> Observable<State, *>.query(query : Query<State, Result>) : Result
     public fun <State, Value> Observable<State, *>.lazyMap(query : Query<State, Value>) : Observable<Value, Nothing>
     @ExperimentalMultipleReceivers
@@ -26,4 +30,17 @@ public interface QueryReceiver {
     public fun <Value> Observable<Value, *>.subscribeValue(subscriber: Subscriber<Value>) : Subscription = subscribe(GetValue(), subscriber)
     @ExperimentalMultipleReceivers
     public fun <Value> Observable<Value, *>.subscribeValueChanges(subscriber: Subscriber<Change<Value>>) : Subscription = subscribeChanges(GetValue(), subscriber)
+
+
+    @ExperimentalMultipleReceivers
+    public fun <Element> Observable<List<Element>, ListManipulation<Element>>.asProperty(): ListProperty<Element> =
+        ObservableListProperty(flow, this)
+
+    @ExperimentalMultipleReceivers
+    public fun <Element> Observable<Element, SetValue<Element>>.asProperty(): Property<Element> =
+        ObservableProperty(flow, this)
+
+    @ExperimentalMultipleReceivers
+    public fun <Element> Observable<Element, Nothing>.asProperty(): SubscribableReference<Element> =
+        ObservableSubscribableReference(flow, this)
 }

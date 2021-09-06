@@ -2,23 +2,22 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 buildscript {
     repositories {
-        jcenter()
-        maven("https://kotlin.bintray.com/kotlinx")
+        mavenCentral()
     }
 
-    val kotlinVersion by extra("1.5.0")
+    val kotlinVersion by extra("1.5.21")
 
     dependencies {
         classpath(kotlin("gradle-plugin", version = kotlinVersion))
-        classpath(kotlin("serialization", version = kotlinVersion))
+//        classpath(kotlin("serialization", version = kotlinVersion))
     }
 }
 
 val kotlinVersion = extra["kotlinVersion"]
 
 plugins {
-    kotlin("plugin.serialization") version "1.5.0" apply false
-    kotlin("multiplatform") version "1.5.0" apply false
+    kotlin("plugin.serialization") version "1.5.21" apply false
+//    id("org.jetbrains.dokka") version "1.5.21"
 }
 
 allprojects {
@@ -27,22 +26,18 @@ allprojects {
 
     repositories {
         mavenCentral()
-        jcenter()
-        maven("https://kotlin.bintray.com/kotlin-js-wrappers")
-        maven("https://kotlin.bintray.com/kotlin-eap")
-        maven("https://kotlin.bintray.com/kotlin-dev")
-        maven("https://kotlin.bintray.com/kotlinx")
-        maven("https://kotlin.bintray.com/kotlinx")
-        maven("https://dl.bintray.com/carrat/carrat")
-        maven("https://carrat.jfrog.io/artifactory/carrat-dev")
+        maven("https://tomaszrocks.jfrog.io/artifactory/carrat-dev/")
+        if(project.properties["useMavenLocal"] == "true") {
+            mavenLocal()
+        }
     }
 }
 
 subprojects {
     apply(plugin = "maven-publish")
 
-    val kotlinVersion by extra("1.5.0")
-    val kotlinWrappersVersion by extra("pre.134-kotlin-1.4.21")
+    val kotlinVersion by extra("1.5.21")
+    val kotlinWrappersVersion by extra("pre.215-kotlin-1.5.20")
     val kotlinxSerializationVersion by extra("1.0.1")
 
     val recommendedVersion by configurations.creating {
@@ -58,8 +53,8 @@ subprojects {
         dependencies {
             platform(kotlin("bom"))
             constraints {
-                recommendedVersion("org.jetbrains.kotlinx:kotlinx-html:0.7.2")
-                recommendedVersion("org.jetbrains:kotlin-css:1.0.0-$kotlinWrappersVersion")
+                recommendedVersion("org.jetbrains.kotlinx:kotlinx-html:0.7.3")
+                recommendedVersion("org.jetbrains.kotlin-wrappers:kotlin-css:1.0.0-$kotlinWrappersVersion")
                 recommendedVersion("org.jetbrains.kotlinx:kotlinx-serialization-core:$kotlinxSerializationVersion")
 //                recommendedVersion("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.4.1")
                 recommendedVersion("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3")
@@ -111,7 +106,7 @@ subprojects {
         repositories {
             maven {
                 name = "carrat"
-                url = uri("https://carrat.jfrog.io/artifactory/carrat-dev/")
+                url = uri("https://tomaszrocks.jfrog.io/artifactory/carrat-dev/")
                 credentials(PasswordCredentials::class)
             }
         }

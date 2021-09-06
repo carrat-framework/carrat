@@ -11,7 +11,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api(project(":carrat-web-fragments"))
+//                api(project(":carrat-web-fragments"))
                 implementation(kotlin("serialization"))
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-core")
                 api(project(":carrat-web-builder"))

@@ -14,7 +14,6 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("org.jetbrains.kotlinx:kotlinx-html")
                 api("org.carrat:carrat-web-webapi")
                 implementation(project(":carrat-experimental"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")

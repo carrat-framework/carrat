@@ -1,15 +1,11 @@
 package org.carrat.web.css
 
 import kotlinx.css.RuleSet
-import kotlinx.html.CommonAttributeGroupFacade
-import kotlinx.html.classes
-import org.carrat.web.builder.CBuilder
-import org.carrat.web.builder.TagConstructor
-import org.carrat.web.builder.attributes
-import org.carrat.web.builder.tag
 import org.carrat.context.HasContext
 import org.carrat.experimental.CarratExperimental
 import org.carrat.experimental.ExperimentalMultipleReceivers
+import org.carrat.web.builder.html.*
+import org.carrat.web.webapi.Element
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
@@ -20,7 +16,7 @@ public open class StyleSheet(name: String, ruleSet: RuleSet? = null) {
     internal val globals: MutableList<RuleSet> = mutableListOf()
 
     init {
-        if(ruleSet != null) {
+        if (ruleSet != null) {
             globals += ruleSet
         }
     }
@@ -31,10 +27,12 @@ public open class StyleSheet(name: String, ruleSet: RuleSet? = null) {
 
     public fun css(builder: RuleSet): CssClassProvider = CssClassProvider(builder)
 
-    public fun <T : CommonAttributeGroupFacade> styled(
-        tagConstructor: TagConstructor<T>,
+    public fun <T, E : Element> styled(
+        tagConstructor: TagType<T, E>,
         css: RuleSet
-    ): StyledProvider<T> = StyledProvider(tagConstructor, css)
+    ): StyledProvider<T, E>
+            where T : CommonAttributeGroup<E>,
+                  T : Tag<T, E> = StyledProvider(tagConstructor, css)
 
     public class CssClassProvider(public val builder: RuleSet) {
         public operator fun provideDelegate(
@@ -47,17 +45,19 @@ public open class StyleSheet(name: String, ruleSet: RuleSet? = null) {
         }
     }
 
-    public class StyledProvider<T : CommonAttributeGroupFacade>(
-        private val tagConstructor: TagConstructor<T>,
+    public class StyledProvider<T, E : Element>(
+        private val tagType: TagType<T, E>,
         private val builder: RuleSet
-    ) {
+    )
+            where T : CommonAttributeGroup<E>,
+                  T : Tag<T, E> {
         public operator fun provideDelegate(
             sheet: StyleSheet,
             property: KProperty<*>
-        ): ReadOnlyProperty<StyleSheet, Styled<T>> {
+        ): ReadOnlyProperty<StyleSheet, Styled<T, E>> {
             val className = sheet.getClassName(property)
             sheet.classes.add(className to builder)
-            return StyledHolder(tagConstructor, className)
+            return StyledHolder(tagType, className)
         }
     }
 
@@ -72,17 +72,19 @@ public open class StyleSheet(name: String, ruleSet: RuleSet? = null) {
         }
     }
 
-    public class StyledHolder<T : CommonAttributeGroupFacade>(
-        private val tagConstructor: TagConstructor<T>,
+    public class StyledHolder<T, E : Element>(
+        private val tagType: TagType<T, E>,
         private val className: String
-    ) : ReadOnlyProperty<StyleSheet, Styled<T>> {
+    ) : ReadOnlyProperty<StyleSheet, Styled<T, E>>
+            where T : CommonAttributeGroup<E>,
+                  T : Tag<T, E> {
         @OptIn(ExperimentalMultipleReceivers::class)
-        override fun getValue(thisRef: StyleSheet, property: KProperty<*>): Styled<T> {
-            return fun CBuilder.(block: StyledBlock<T>) {
-                context.get(styleSheetsManager).importStyleSheet(thisRef)
-                tag(tagConstructor) {
+        override fun getValue(thisRef: StyleSheet, property: KProperty<*>): Styled<T, E> {
+            return fun TagConsumer<*>.(block: StyledBlock<T, E>) {
+                context[styleSheetsManager].importStyleSheet(thisRef)
+                tag(tagType) {
                     attributes {
-                        classes = setOf(className)
+                        `class` = className
                     }
                     block()
                 }

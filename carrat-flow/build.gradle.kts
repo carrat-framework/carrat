@@ -33,7 +33,7 @@ kotlin {
         }
         js(BOTH).compilations["main"].defaultSourceSet {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-js")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-js:1.4.3")
             }
         }
     }

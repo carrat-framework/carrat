@@ -75,7 +75,7 @@ public data class Add<out E>(
     val element: E
 ) : NonMetaListManipulation<E>(), BasicListManipulation<E> {
     @Suppress("UNCHECKED_CAST")
-    public open override fun <@LowerBound("E") T> toBasic(list: List<T>): List<BasicListManipulation<T>> =
+    public override fun <@LowerBound("E") T> toBasic(list: List<T>): List<BasicListManipulation<T>> =
         listOf(this as BasicListManipulation<T>)
 
     override fun applyTo(target: MutableList<in E>) {

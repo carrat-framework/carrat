@@ -9,9 +9,9 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation(project(":carrat-web-fragments"))
+//                implementation(project(":carrat-web-fragments"))
                 implementation(project(":carrat-web-builder"))
-                api("org.jetbrains:kotlin-css")
+                api("org.jetbrains.kotlin-wrappers:kotlin-css")
             }
         }
         commonTest {

@@ -1,10 +1,11 @@
 package org.carrat.web.css
 
-import kotlinx.html.HEAD
 import org.carrat.context.Context
+import org.carrat.web.builder.html.Head
+import org.carrat.web.builder.html.TagConsumer
 
-public fun HEAD.injectStyleSheets(context : Context){
+public fun TagConsumer<Head>.injectStyleSheets(context: Context) {
     with(context.get(styleSheetsManager)) {
-        this@injectStyleSheets.injectStyleSheets()
+        injectStyleSheets()
     }
 }

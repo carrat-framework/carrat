@@ -1,11 +1,12 @@
 package org.carrat.web.css
 
-import kotlinx.html.*
-import org.carrat.web.fragments.mount
-import org.carrat.web.fragments.render
 import org.carrat.web.builder.build
 import org.carrat.context.Context
 import org.carrat.web.builder.document.DocumentTemplate
+import org.carrat.web.builder.fragment.mount
+import org.carrat.web.builder.html.HtmlBlock
+import org.carrat.web.builder.html.HtmlWriter
+import org.carrat.web.builder.html.TagType
 import org.carrat.web.webapi.*
 import org.w3c.dom.events.Event
 
@@ -26,98 +27,53 @@ internal inline fun Element.setEvent(name: String, noinline callback: (Event) ->
     asDynamic()[name] = callback
 }
 
-private class JSDOMBuilder(val node: Element) : TagConsumer<Element> {
-    val document: Document = node.ownerDocumentExt
-    private val path = arrayListOf(node)
-    private var lastLeft: Element? = null
-
-    override fun onTagStart(tag: Tag) {
+private class JSDOMBuilder(val node: Element, val document: Document = node.ownerDocumentExt) : HtmlWriter {
+    override fun writeTag(tagType: TagType<*, *>, attributes: Map<String, String>, htmlBlock: HtmlBlock?) {
+        val namespace = tagType.namespace
+        val tagName = tagType.name
         val element: Element = when {
-            tag.namespace != null -> document.createElementNS(tag.namespace!!, tag.tagName)
-            else -> document.createElement(tag.tagName)
+            namespace != null -> document.createElementNS(namespace, tagName)
+            else -> document.createElement(tagName)
         }
 
-        tag.attributesEntries.forEach {
+        attributes.forEach {
             element.setAttribute(it.key, it.value)
         }
-
-        if (path.isNotEmpty()) {
-            path.last().appendChild(element)
+        if (htmlBlock != null) {
+            JSDOMBuilder(element, document).htmlBlock()
         }
-
-        path.add(element)
+        node.append(element)
     }
 
-    override fun onTagAttributeChange(tag: Tag, attribute: String, value: String?) {
-        when {
-            path.isEmpty() -> throw IllegalStateException("No current tag")
-            path.last().tagName.toLowerCase() != tag.tagName.toLowerCase() -> throw IllegalStateException("Wrong current tag")
-            else -> path.last().let { node ->
-                if (value == null) {
-                    node.removeAttribute(attribute)
-                } else {
-                    node.setAttribute(attribute, value)
-                }
-            }
-        }
+    override fun writeText(content: Appendable.() -> Unit) {
+        val sb = StringBuilder()
+        sb.content()
+        writeText(sb.toString())
     }
 
-    override fun onTagEvent(tag: Tag, event: String, value: (Event) -> Unit) {
-        when {
-            path.isEmpty() -> throw IllegalStateException("No current tag")
-            path.last().tagName.toLowerCase() != tag.tagName.toLowerCase() -> throw IllegalStateException("Wrong current tag")
-            else -> path.last().setEvent(event, value)
-        }
+    override fun writeText(content: CharSequence) {
+        node.appendChild(document.createTextNode(content.toString()))
     }
 
-    override fun onTagEnd(tag: Tag) {
-        if (path.isEmpty() || path.last().tagName.toLowerCase() != tag.tagName.toLowerCase()) {
-            throw IllegalStateException("We haven't entered tag ${tag.tagName} but trying to leave")
-        }
-
-        lastLeft = path.removeAt(path.lastIndex)
+    override fun writeUnsafe(unsafeContent: Appendable.() -> Unit) {
+        val sb = StringBuilder()
+        sb.unsafeContent()
+        writeUnsafe(sb.toString())
     }
 
-    override fun onTagContent(content: CharSequence) {
-        if (path.isEmpty()) {
-            throw IllegalStateException("No current DOM node")
-        }
-
-        path.last().appendChild(document.createTextNode(content.toString()))
+    override fun writeUnsafe(unsafeContent: CharSequence) {
+        node.innerHTML += unsafeContent
     }
 
-    override fun onTagContentEntity(entity: Entities) {
-        if (path.isEmpty()) {
-            throw IllegalStateException("No current DOM node")
-        }
-
-        // stupid hack as browsers doesn't support createEntityReference
-        val s = document.createElement("span") as HTMLElement
-        s.innerHTML = entity.text
-        path.last().appendChild(s.childNodes.asList().first { it.nodeType == Node.TEXT_NODE })
-
-        // other solution would be
-//        pathLast().innerHTML += entity.text
+    override fun writeComment(content: Appendable.() -> Unit) {
+        val sb = StringBuilder()
+        sb.content()
+        writeComment(sb.toString())
     }
 
-    override fun onTagContentUnsafe(block: Unsafe.() -> Unit) {
-        with(DefaultUnsafe()) {
-            block()
-
-            path.last().innerHTML += toString()
-        }
+    override fun writeComment(content: CharSequence) {
+        node.appendChild(document.createComment(content.toString()))
     }
-
-
-    override fun onTagComment(content: CharSequence) {
-        if (path.isEmpty()) {
-            throw IllegalStateException("No current DOM node")
-        }
-
-        path.last().appendChild(document.createComment(content.toString()))
-    }
-
-    override fun finalize(): Element = node
 }
 
 private val Node.ownerDocumentExt: Document

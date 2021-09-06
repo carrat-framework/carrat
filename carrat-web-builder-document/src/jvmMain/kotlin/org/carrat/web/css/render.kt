@@ -1,27 +1,40 @@
 package org.carrat.web.css
 
-import kotlinx.html.*
 import org.carrat.web.builder.build
 import org.carrat.context.Context
 import org.carrat.web.builder.document.DocumentTemplate
 import org.carrat.experimental.CarratExperimental
-import org.carrat.web.fragments.render
+import org.carrat.web.builder.html.*
 
 @CarratExperimental
-public fun TagConsumer<*>.render(template: DocumentTemplate, context: Context, jsPath: String?) {
+internal fun TagConsumer<HtmlConsumer>.render(template: DocumentTemplate, context: Context, jsPath: String?) {
     val headFragment = context.build(template.head)
     val bodyFragment = context.build(template.body)
 
     html {
         head {
-            render(headFragment)
+            append(headFragment)
             injectStyleSheets(context)
             if (jsPath != null) {
-                script(src = jsPath) {}
+                script {
+                    attributes {
+                        src = jsPath
+                    }
+                }
             }
         }
         body {
-            render(bodyFragment)
+            append(bodyFragment)
         }
+    }
+}
+
+@CarratExperimental
+public fun Appendable.render(template: DocumentTemplate, context: Context, jsPath: String?) {
+    val fragment = context.build<HtmlConsumer> {
+        render(template, context, jsPath)
+    }
+    with(DefaultHtmlWriter(this)) {
+        with(fragment) { render() }
     }
 }

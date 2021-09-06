@@ -20,6 +20,7 @@ internal inline fun <reified T> Iterator<NodeToken>.requireNext(): T {
     }
 }
 
+@Suppress("NOTHING_TO_INLINE")
 internal inline fun Iterator<NodeToken>.requireMarker(marker: Marker): Comment {
     val next = requireNext<MarkerToken>()
     if (next.marker != marker) {
